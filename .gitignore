@@ -179,3 +179,5 @@ cython_debug/
 #plotly
 interactive_figs
 settings.json
+
+/explorations
