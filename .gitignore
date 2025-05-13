@@ -172,3 +172,10 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+#mac
+.DS_Store
+
+#plotly
+interactive_figs
+settings.json
