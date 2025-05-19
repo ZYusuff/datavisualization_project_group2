@@ -1,7 +1,8 @@
 import taipy.gui.builder as tgb
 from utils.charts import create_educational_area_bar
+import pandas as pd
 
-def build_page(df_long, raw_data_table):
+def page_2(df_long, raw_data_table):
     # Initiera default state
     number_of_years = 20
     selected_educational_area = df_long["Utbildningsinriktning"].dropna().unique()[0]
@@ -18,7 +19,8 @@ def build_page(df_long, raw_data_table):
         state.chart_title = f"Antal studerande för {state.selected_educational_area}"
 
     # Skapa sidan
-    with tgb.Page() as page:
+    with tgb.Page() as page_2:
+        tgb.navbar()
         with tgb.part(class_name="container card stack-large"):
             tgb.text("# MYH Dashboard 2024", mode="md")
             tgb.text(
@@ -44,12 +46,10 @@ def build_page(df_long, raw_data_table):
                     )
                     tgb.button("FILTRERA DATA", class_name="button-color", on_action=filter_data)
 
-            tgb.text("## Rådata från Statistiska centralbyrån SCB", mode="md")
-            tgb.table(data="{raw_data_table}", page_size=10)
-
-    return page, {
+    return page_2, {
         "number_of_years": number_of_years,
         "selected_educational_area": selected_educational_area,
         "educational_area_chart": educational_area_chart,
-        "chart_title": chart_title
+        "chart_title": chart_title,
+        "raw_data_table": raw_data_table
     }

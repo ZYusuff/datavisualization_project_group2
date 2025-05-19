@@ -15,7 +15,7 @@ def create_educational_area_bar(df, educational_area, num_years=5):
         filtered,
         x="År",
         y="Antal studerande",
-        title=f"Antal studerande inom {educational_area}",
+        title=None,
         labels={"Antal studerande": "Antal studerande", "År": "År"},
     )
     fig.update_layout(xaxis=dict(tickangle=45))
