@@ -1,6 +1,8 @@
 from taipy.gui import Gui
 from backend.data_processing.page_2_data_processing import load_and_process_page2_data
+from frontend.pages.page_1 import course_page
 from frontend.pages.page_2 import page_2
+from frontend.pages.page_3 import page_3
 from frontend.pages.home import home_page
 from frontend.pages.data import data_page
 
@@ -12,7 +14,9 @@ page2_page, page2_state = page_2(df_long, raw_data_table)
 
 pages = {
     "home": home_page,
+    "Courses": course_page,
     "utbildningsinriktning": page2_page,
+    "Skolor": page_3,
     "data": data_page
 }
 
