@@ -3,6 +3,7 @@ from backend.data_processing.page_2_data_processing import load_and_process_page
 from frontend.pages.page_2 import page_2
 from frontend.pages.home import home_page
 from frontend.pages.data import data_page
+
 # Ladda data globalt
 df_long, raw_data_table = load_and_process_page2_data()
 
