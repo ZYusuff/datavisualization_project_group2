@@ -65,12 +65,28 @@ def course_data_transform():
 def approved_courses():
     df = course_data_transform()
     approved_courses = duckdb.query(f"""--sql
-    
-        SELECT län, År, count(beslut) as antal_bev
-        FROM df
-        WHERE "Antal kommuner" <= 1 AND Beslut = 'Beviljad'
-        GROUP BY län, År
-        ORDER BY antal_bev DESC
+        SELECT
+            all_combs.län,
+            all_combs.År,
+            COALESCE(actual_counts.antal_bev, 0) AS antal_bev
+        FROM
+            (SELECT DISTINCT län, År
+            FROM df) AS all_combs
+        LEFT JOIN
+        (SELECT
+            län,
+            År,
+            COUNT(beslut) AS antal_bev
+        FROM
+            df
+        WHERE
+            "Antal kommuner" <= 1 AND Beslut = 'Beviljad'
+        GROUP BY
+            län, År) AS actual_counts
+    ON
+        all_combs.län = actual_counts.län AND all_combs.År = actual_counts.År
+    ORDER BY
+        antal_bev DESC, all_combs.År;
     """).df()
     return approved_courses
 
@@ -105,7 +121,7 @@ def regions_df():
         df_regions['matched_name'] = df_regions['name'].map(name_mapping)
     return df_regions
 #print(approved_courses())
-def map_df(year = 2024):
+def map_df(year = 2022):
     appr_course = approved_courses()
     regions = regions_df()
     map_df = duckdb.query(f"""--sql
@@ -119,6 +135,5 @@ def map_df(year = 2024):
 
     map_df = map_df.fillna(0)
     map_df["antal_bev"] = map_df["antal_bev"].astype(int)
-    #map_df.query(f"År == {year}")
 
     return map_df
