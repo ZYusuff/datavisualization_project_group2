@@ -15,7 +15,7 @@ page2_page, page2_state = page_2(df_long, raw_data_table)
 pages = {
     "home": home_page,
     "Courses": course_page,
-    "utbildningsinriktning": page2_page,
+    "utbildningsområde": page2_page,
     "Skolor": page_3,
     "data": data_page
 }
