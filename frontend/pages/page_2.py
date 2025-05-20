@@ -20,7 +20,8 @@ def page_2(df_long, raw_data_table):
 
     # Skapa sidan
     with tgb.Page() as page_2:
-        tgb.navbar()
+        with tgb.part(class_name="container card"):
+            tgb.navbar()
         with tgb.part(class_name="container card stack-large"):
             tgb.text("# MYH Dashboard 2024", mode="md")
             tgb.text(

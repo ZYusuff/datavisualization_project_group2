@@ -28,14 +28,16 @@ def course_school_table(df, school = "", year=2024):
         df = duckdb.query(f"""--sql
                 SELECT 
                 skola,
-                COUNT(kursnamn) AS antal_kurser,
-                COUNT(CASE WHEN "Beslut"= 'Beviljad' THEN 1 ELSE NULL END) AS approved_courses,
-                approved_courses/ antal_kurser AS rate
+                COUNT(kursnamn) AS "Antal kurser",
+                COUNT(CASE WHEN "Beslut"= 'Beviljad' THEN 1 ELSE NULL END) AS "Beviljade kurser",
+                "Beviljade kurser"/ "Antal kurser" AS rate
                 FROM df
                 WHERE "År" = {year}
                 GROUP BY skola
-                ORDER BY antal_kurser DESC
+                ORDER BY "Antal kurser" DESC
         """).df()
+        df["rate"] = round((df["rate"]*100),2).astype(str) + '%'
+        df = df.rename(columns={'rate': 'Beviljandegrad'})
         return df
     else:
         df = duckdb.query(f"""--sql
@@ -55,38 +57,55 @@ def course_school_table(df, school = "", year=2024):
 def plot_area(df, year):
         duckdb.register('df_for_query', df)
         plot_df = duckdb.query(f"""--sql
-            SELECT Utbildningsområde, COUNT(*) as antal
+            SELECT Utbildningsområde, COUNT(*) as antal, Beslut
             FROM df
-            WHERE "Beslut" = 'Beviljad' AND År = {year}
-            GROUP BY Utbildningsområde
+            WHERE År = {year}
+            GROUP BY Utbildningsområde, Beslut
                         ORDER BY antal DESC
         """).df()
-        fig = px.bar(plot_df, x="antal", y="Utbildningsområde", color="Utbildningsområde", orientation='h')
-        fig.update_layout(showlegend=False)
+
+        custom_colors = {
+            'Beviljad': '#084083',   # Color for Approved
+            'Avslag': '#E4ECF6',     # Color for Rejected
+        }
+
+        fig = px.bar(plot_df, 
+                     x="antal", 
+                     y="Utbildningsområde", 
+                     color="Beslut", 
+                     color_discrete_map = custom_colors,
+                     orientation='h', 
+                     text_auto=True,
+                     height=800)
+        fig.update_layout(
+             showlegend=False, 
+             barmode='group',
+             plot_bgcolor="white",
+             yaxis=dict(
+                  autorange="reversed"),
+            xaxis=dict(
+                  title="Antal")
+            )
         return fig
 
 #plot the map on course page
 def plot_map(year):
     df_map = map_df(year)
+    df_map = df_map.rename(columns={"antal_bev": "Antal beviljade", "code": "Länskod"})
     geo_json = geo_file()
     fig = px.choropleth(df_map, 
                         geojson=geo_json, 
-                        locations="code", 
+                        locations="Länskod", 
                         featureidkey="properties.ref:se:länskod",
-                        color="antal_bev",
+                        color="Antal beviljade",
                         color_continuous_scale="blues",
                         hover_name="name",
-                        hover_data=["antal_bev",],
                         )
                         
-
+    fig.update_layout(width=1000, 
+                      height=700,
+                      legend=dict(title="Antal beviljade")
+                      )
     fig.update_geos(fitbounds="locations", visible=False, projection_type="orthographic")
-    fig.update_layout(width=600)
 
-    fig.update_traces(
-        hovertemplate="""
-            <b>%{hovertext}</b><br>
-            Antal invånare: %{antal_bev}<extra></extra>
-        """
-    )
     return fig

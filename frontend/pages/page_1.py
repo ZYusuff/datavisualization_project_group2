@@ -1,10 +1,7 @@
 import taipy.gui.builder as tgb
 from taipy.gui import Gui
-import duckdb
 import plotly.express as px
 import pandas as pd
-from pathlib import Path
-from difflib import get_close_matches
 from backend.data_processing.page_1_data_processing import map_df, geo_file, course_data_transform
 from frontend.charts import course_stats, course_school_table, plot_area, plot_map
 
@@ -58,6 +55,3 @@ with tgb.Page() as course_page:
 
         tgb.text("## Beviljade kurser per region, {year}", mode= "md")
         tgb.chart(figure="{fig2}")
-
-        tgb.text("# Data", mode="md")
-        tgb.table("{df}")
