@@ -1,96 +1,101 @@
-import pandas as pd
-import plotly.express as px
 import taipy.gui.builder as tgb
+import plotly.express as px
+import pandas as pd
 
-# === Filvägar ===
-beviljade_path = "data/page_3/beviljade_program.xlsx"
-studerande_path = "data/page_3/studerande_over_tid.xlsx"
-beslut_path = "data/page_3/alla_ansökingar.xlsx"
+# === Ladda kurs- och programdata ===
+kurs_df = pd.read_excel("data/page_3/alla_ansökningar.xlsx")
+program_df = pd.read_excel("data/page_3/beviljade_program.xlsx")
 
-# === Steg 1: Läs in beviljade utbildningar ===
-df_beviljade = pd.read_excel(beviljade_path, sheet_name="Tabell 1", skiprows=4)
-df_beviljade.columns = [
-    "Utbildningsområde", "Utbildningsnamn", "Län", "Kommun", "Diarienummer",
-    "Flera kommuner", "Antal kommuner", "YH-poäng", "Utbildningsanordnare"
-]
-df_beviljade = df_beviljade.dropna(subset=["Utbildningsanordnare"])
+# === Förbered kursdata
+kurs_df["År"] = kurs_df["Diarienummer"].astype(str).str.extract(r"(\d{4})").astype(int)
+kurs_df = kurs_df.rename(columns={
+    "Utbildningsanordnare administrativ enhet": "Anordnare",
+    "Utbildningsnamn": "Utbildning",
+    "Beslut": "Status"
+})
+kurs_df["Typ"] = "Kurs"
 
-summary = (
-    df_beviljade.groupby(["Utbildningsanordnare", "Län"])
-    .agg(
-        antal_program=("Utbildningsnamn", "nunique"),
-        antal_kurser=("Utbildningsnamn", "count")
-    ).reset_index()
-)
+# === Förbered programdata
+program_df["År"] = program_df["Diarienummer"].astype(str).str.extract(r"(\d{4})").astype(int)
+program_df = program_df.rename(columns={
+    "Utbildningsanordnare administrativ enhet": "Anordnare",
+    "Utbildningsnamn": "Utbildning"
+})
+program_df["Status"] = "Beviljad"
+program_df["Typ"] = "Program"
 
-områden = (
-    df_beviljade.groupby("Utbildningsanordnare")["Utbildningsområde"]
-    .agg(lambda x: x.mode().iloc[0] if not x.mode().empty else None)
-    .reset_index()
-    .rename(columns={"Utbildningsområde": "Område"})
-)
-summary = summary.merge(områden, on="Utbildningsanordnare", how="left")
+# === Slå ihop datan
+kolumner = ["Anordnare", "Utbildning", "Status", "År", "Typ"]
+df = pd.concat([kurs_df[kolumner], program_df[kolumner]], ignore_index=True)
 
-# === Steg 2: Studerande ===
-df_stud = pd.read_excel(studerande_path)
-df_stud_clean = df_stud.iloc[2:, :23].copy()
-df_stud_clean.columns = ["Område", "Ålder"] + list(range(2005, 2026))
-årskolumner = list(range(2005, 2026))
-df_stud_clean[årskolumner] = df_stud_clean[årskolumner].apply(pd.to_numeric, errors="coerce")
+# === Initiera state-variabler
+val_typ = "Kurs"
+val_anordnare = ""
+val_år = 0
+antal_ansökningar = 0
+antal_beviljade = 0
+beviljandegrad = 0
+antal_utbildningar = 0
+utbildningstabell = pd.DataFrame(columns=["Utbildning", "Status"])
+diagram = px.bar(pd.DataFrame(columns=["Status", "Antal"]), x="Status", y="Antal")
 
-df_stud_grouped = (
-    df_stud_clean.groupby("Område")[årskolumner]
-    .sum()
-    .sum(axis=1)
-    .reset_index()
-    .rename(columns={0: "Antal studerande"})
-)
-summary = summary.merge(df_stud_grouped, on="Område", how="left")
+# === Dropdown-listor baserat på val
+def get_anordnare_list(typ):
+    return sorted(df[df["Typ"] == typ]["Anordnare"].dropna().unique().tolist())
 
-# === Steg 3: Beviljandegrad ===
-df_beslut = pd.read_excel(beslut_path, sheet_name="Tabell 3", skiprows=4)
-df_beslut.columns.values[3] = "Utbildningsnamn"
-df_beslut.columns.values[4] = "Beslut"
-df_beslut.columns.values[27] = "Utbildningsanordnare"
+def get_år_list(typ):
+    return sorted(df[df["Typ"] == typ]["År"].dropna().unique().tolist())
 
-beslut_count = (
-    df_beslut.groupby(["Utbildningsanordnare", "Beslut"])
-    ["Utbildningsnamn"]
-    .count()
-    .unstack(fill_value=0)
-    .reset_index()
-)
-beslut_count["Totalt"] = beslut_count.sum(axis=1, numeric_only=True)
-beslut_count["Beviljandegrad"] = (beslut_count.get("Beviljad", 0) / beslut_count["Totalt"] * 100).round(1)
-summary = summary.merge(
-    beslut_count[["Utbildningsanordnare", "Beviljandegrad"]],
-    on="Utbildningsanordnare", how="left"
-)
+# === Uppdatera state
+def uppdatera_state(state):
+    filtered = df[
+        (df["Typ"] == state.val_typ) &
+        (df["Anordnare"] == state.val_anordnare) &
+        (df["År"] == state.val_år)
+    ]
 
-# === Steg 4: Topp 5 anordnare ===
-top5 = summary.sort_values("antal_kurser", ascending=False).drop_duplicates("Län").head(5)
+    state.antal_ansökningar = len(filtered)
+    state.antal_beviljade = len(filtered[filtered["Status"].str.lower() == "beviljad"])
+    state.antal_utbildningar = filtered["Utbildning"].nunique()
+    state.utbildningstabell = filtered[["Utbildning", "Status"]].sort_values("Utbildning")
 
-# === Diagramfunktion ===
-def get_bar_chart():
-    fig = px.bar(
-        top5,
-        x="Utbildningsanordnare",
-        y=["antal_kurser", "antal_program"],
-        barmode="group",
-        title="Antal kurser och program per anordnare",
-        labels={"value": "Antal", "variable": "Typ"}
+    if state.antal_ansökningar > 0:
+        state.beviljandegrad = round((state.antal_beviljade / state.antal_ansökningar) * 100, 2)
+    else:
+        state.beviljandegrad = 0
+
+    status_counts = filtered["Status"].value_counts().reset_index()
+    status_counts.columns = ["Status", "Antal"]
+
+    state.diagram = px.bar(
+        status_counts,
+        x="Status",
+        y="Antal",
+        color="Status",
+        title="Beviljade vs Ej beviljade",
+        color_discrete_sequence=["#2a9d8f", "#e76f51"]
     )
-    return fig
 
-# === Taipy Page: builder-version ===
+# === GUI
 with tgb.Page() as page:
-    with tgb.part(class_name="card"):
-        tgb.text("# 📊 Anordnarstatistik – Topp 5 utbildningsanordnare", mode="md")
-        tgb.text(
-            """Här visas en översikt av utbildningsanordnare från olika län med flest beviljade kurser.
-Tabellen visar antal program, antal kurser, utbildningsområde, antal studerande och beviljandegrad.""",
-            mode="md"
-        )
-        tgb.table(top5)
-        tgb.chart(get_bar_chart)
+    with tgb.part(class_name="container card"):
+        tgb.navbar()
+
+    with tgb.part(class_name="container card stack-large"):
+        tgb.text("# Statistik per utbildningsanordnare", mode="md")
+
+        with tgb.layout(columns="1 1 1"):
+            tgb.selector("val_typ", lov=["Kurs", "Program"], label="Typ", on_change=uppdatera_state)
+            tgb.selector("val_anordnare", lov="{get_anordnare_list(val_typ)}", label="Anordnare", on_change=uppdatera_state)
+            tgb.selector("val_år", lov="{get_år_list(val_typ)}", label="År", on_change=uppdatera_state)
+
+        with tgb.layout(columns="1 1 1"):
+            with tgb.part(): tgb.text("**Antal ansökningar**"); tgb.text("{antal_ansökningar}")
+            with tgb.part(): tgb.text("**Beviljade utbildningar**"); tgb.text("{antal_beviljade}")
+            with tgb.part(): tgb.text("**Beviljandegrad**"); tgb.text("{beviljandegrad} %")
+
+        tgb.chart("{diagram}")
+        tgb.text("## Utbildningar", mode="md")
+        tgb.table("{utbildningstabell}", page_size=10)
+
 
