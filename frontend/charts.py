@@ -124,7 +124,7 @@ def create_storytelling_chart(df_summary):
     highlight_area = "Ekonomi, administration och försäljning"
     colors = ['lightgray' if area != highlight_area else 'royalblue' for area in df_summary["Utbildningsinriktning"]]
 
-    fig = px.bar(
+    fig_px = px.bar(
         df_summary,
         y="Utbildningsinriktning",
         x="Antal studerande",
@@ -133,21 +133,19 @@ def create_storytelling_chart(df_summary):
         labels={"Utbildningsinriktning": "Utbildningsområde", "Antal studerande": "Antal studerande"}
     )
 
-    fig.update_traces(marker_color=colors)
-
-    fig.update_layout(
+    fig_px.update_traces(marker_color=colors)
+    fig_px.update_layout(
         plot_bgcolor="white",
         xaxis=dict(showgrid=False, zeroline=False),
         yaxis=dict(showgrid=False, zeroline=False),
         margin=dict(l=120, r=80, t=80, b=40)
     )
 
-    # Om highlight_area finns i df_summary, lägg till pil
     if highlight_area in df_summary["Utbildningsinriktning"].values:
         highlight_idx = df_summary.index[df_summary["Utbildningsinriktning"] == highlight_area][0]
         highlight_value = df_summary.loc[highlight_idx, "Antal studerande"]
 
-        fig.add_annotation(
+        fig_px.add_annotation(
             x=highlight_value,
             y=highlight_idx - 0.4,
             text=" Viktig tillväxtmöjlighet",
@@ -162,4 +160,8 @@ def create_storytelling_chart(df_summary):
             borderwidth=1
         )
 
+    # Konvertera plotly.express-figuren till plotly.graph_objects.Figure
+    fig = go.Figure(fig_px)
     return fig
+
+

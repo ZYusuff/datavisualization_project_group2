@@ -48,16 +48,8 @@ def page_2(df_long, raw_data_table):
     with tgb.Page() as page_2:
         with tgb.part(class_name="container card"):
             tgb.navbar()
-        with tgb.part(class_name="container card stack-large"):
-            tgb.text("# MYH Dashboard 2024", mode="md")
-            tgb.text(
-            "Denna dashboard visar antal studerande inom olika utbildningsområden på yrkeshögskolan (YH) i Sverige över tid. "
-            "Data är hämtad från Statistiska centralbyrån (SCB) och omfattar endast YH-utbildningar. "
-            "Genom att filtrera på utbildningsinriktning och antal år kan du analysera trender och förändringar i antalet studerande "
-            "för att få en översikt över utvecklingen inom olika utbildningsinriktningar.",
-            mode="md"
-        )
-
+        with tgb.part(class_name="container card"):
+            tgb.text("# Utbildningsområde {selected_educational_area}", mode= "md")
         with tgb.part(class_name="container card stack-large"):
             tgb.text(
                 "Denna dashboard visar antal studerande inom olika utbildningsområden på yrkeshögskolan (YH) i Sverige över tid. "
