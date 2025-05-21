@@ -1,25 +1,22 @@
 import pandas as pd
-from utils.constants import DATA_DIRECTORY
+from pathlib import Path
 
 def load_school_data():
-    file_path = DATA_DIRECTORY / "page_3" / "alla_ansökningar.xlsx"
-    df = pd.read_excel(file_path)
+    path = Path(__file__).parent.parent.parent / "data/page_3/alla_ansökningar.xlsx"
+    df = pd.read_excel(path)
 
-    # Byt till standardiserade kolumnnamn
+    # Byt till kolumner som finns i din Excel-fil
     df = df.rename(columns={
-        "Utbildningsnamn": "Utbildning",
         "Utbildningsanordnare administrativ enhet": "Anordnare",
-        "Beslut": "Status",
-        "Diarienummer": "Diarienummer"
+        "Utbildningsnamn": "Utbildning",
+        "Beslut": "Status"
     })
 
     # Extrahera år från diarienummer
     df["År"] = df["Diarienummer"].astype(str).str.extract(r"(\d{4})")
+    df["År"] = pd.to_numeric(df["År"], errors="coerce")
     df = df.dropna(subset=["År"])
     df["År"] = df["År"].astype(int)
 
-    # Behåll endast relevanta kolumner
-    df = df[["Anordnare", "Utbildning", "Status", "År"]].dropna()
-    df["Status"] = df["Status"].str.strip().str.capitalize()
-
-    return df
+    # Endast nödvändiga kolumner
+    return df[["Anordnare", "Utbildning", "Status", "År"]].dropna()
