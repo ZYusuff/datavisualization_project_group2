@@ -69,13 +69,13 @@ def page_2(df_long, raw_data_table):
 
             # Statkort
             with tgb.layout(columns="1 1", gap="1rem"):
-                with tgb.part(class_name="card center"):
-                    tgb.text("### Totalt antal studerande de senaste {actual_years} åren", mode="md")
-                    tgb.text("{total_students}", mode="md")
+                with tgb.part():
+                    tgb.text("Totalt antal studerande de senaste {actual_years} åren", mode="md")
+                    tgb.text("## {total_students}", mode="md")
 
-                with tgb.part(class_name="card center"):
-                    tgb.text("### Medelvärdet av studenter per år", mode="md")
-                    tgb.text("{average_students}", mode="md")
+                with tgb.part():
+                    tgb.text("Medelvärdet av studenter per år", mode="md")
+                    tgb.text("## {average_students}", mode="md")
 
                 #with tgb.part(class_name="card center"):
                     #tgb.text("### Antal år", mode="md")

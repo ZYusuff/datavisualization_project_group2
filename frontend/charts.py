@@ -1,5 +1,6 @@
 import duckdb
 import plotly.express as px
+import plotly.graph_objects as go
 from backend.data_processing.page_1_data_processing import map_df, geo_file
 
 # CHARTS AND STATS FOR THE COURSE PAGE (PAGE 1)
@@ -107,5 +108,58 @@ def plot_map(year):
                       legend=dict(title="Antal beviljade")
                       )
     fig.update_geos(fitbounds="locations", visible=False, projection_type="orthographic")
+
+    return fig
+    fig.update_traces(
+        hovertemplate="""
+            <b>%{hovertext}</b><br>
+            Antal invånare: %{antal_bev}<extra></extra>
+        """
+    )
+    return fig
+
+# CHARTS AND STATS FOR STORYTELLING PAGE (storytelling 2)
+
+def create_storytelling_chart(df_summary):
+    highlight_area = "Ekonomi, administration och försäljning"
+    colors = ['lightgray' if area != highlight_area else 'royalblue' for area in df_summary["Utbildningsinriktning"]]
+
+    fig = px.bar(
+        df_summary,
+        y="Utbildningsinriktning",
+        x="Antal studerande",
+        orientation='h',
+        title="Vilket utbildningsområde bör # The Skool fokusera på ?",
+        labels={"Utbildningsinriktning": "Utbildningsområde", "Antal studerande": "Antal studerande"}
+    )
+
+    fig.update_traces(marker_color=colors)
+
+    fig.update_layout(
+        plot_bgcolor="white",
+        xaxis=dict(showgrid=False, zeroline=False),
+        yaxis=dict(showgrid=False, zeroline=False),
+        margin=dict(l=120, r=80, t=80, b=40)
+    )
+
+    # Om highlight_area finns i df_summary, lägg till pil
+    if highlight_area in df_summary["Utbildningsinriktning"].values:
+        highlight_idx = df_summary.index[df_summary["Utbildningsinriktning"] == highlight_area][0]
+        highlight_value = df_summary.loc[highlight_idx, "Antal studerande"]
+
+        fig.add_annotation(
+            x=highlight_value,
+            y=highlight_idx - 0.4,
+            text=" Viktig tillväxtmöjlighet",
+            showarrow=True,
+            arrowhead=3,
+            arrowcolor="royalblue",
+            ax=0,
+            ay=30,
+            font=dict(color="royalblue", size=13, family="Arial"),
+            bgcolor="white",
+            bordercolor="royalblue",
+            borderwidth=1
+        )
 
     return fig
