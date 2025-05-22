@@ -146,12 +146,13 @@ def create_funnel_chart_total(df):
     return fig
 
 
-def create_funnel_chart_total(df):
+def create_funnel_chart_gender(df):
     fig = px.funnel(
         df,
-        x="value",
+        x="number",
         y="stage",
-        title="Utbildningsfunnel: Sökande → Behöriga → Antagna → Examinerade",
+        color="office",
+        title="Utbildningsfunnel (Kön): Sökande → Behöriga → Antagna → Examinerade",
     )
     fig.update_layout(
         plot_bgcolor="white", xaxis_title="Antal personer", yaxis_title="Steg"
