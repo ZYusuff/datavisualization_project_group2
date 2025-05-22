@@ -1,5 +1,5 @@
 import taipy.gui.builder as tgb
-from frontend.charts import create_funnel_chart
+from frontend.charts import create_funnel_chart_total
 from backend.data_processing.page_4_data_processing import (
     get_direction_and_year_options,
     prepare_total_data,
@@ -15,12 +15,12 @@ direction = default_direction
 year = default_year
 
 initial_df = prepare_total_data(default_direction, default_year)
-funnel_fig = create_funnel_chart(initial_df)
+funnel_fig = create_funnel_chart_total(initial_df)
 
 
 def update_state(state):
     df = prepare_total_data(state.direction, state.year)
-    state.funnel_fig = create_funnel_chart(df)
+    state.funnel_fig = create_funnel_chart_total(df)
 
 
 with tgb.Page() as student_page:
@@ -55,7 +55,11 @@ with tgb.Page() as student_page:
                             label="Year",
                             on_change=update_state,
                         )
+            with tgb.layout(columns="1 1"):
+                with tgb.part(class_name="card"):
+                    tgb.text("## Воронка", mode="md")
+                    tgb.chart(figure="{funnel_fig}")
 
-            with tgb.part(class_name="card"):
-                tgb.text("## Воронка", mode="md")
-                tgb.chart(figure="{funnel_fig}")
+                with tgb.part(class_name="card"):
+                    tgb.text("## Воронка", mode="md")
+                    tgb.chart(figure="{funnel_fig}")

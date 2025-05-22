@@ -124,9 +124,16 @@ def plot_map(year):
     )
 
     return fig
+    fig.update_traces(
+        hovertemplate="""
+            <b>%{hovertext}</b><br>
+            Antal invånare: %{antal_bev}<extra></extra>
+        """
+    )
+    return fig
 
 
-def create_funnel_chart(df):
+def create_funnel_chart_total(df):
     fig = px.funnel(
         df,
         x="value",
@@ -137,12 +144,17 @@ def create_funnel_chart(df):
         plot_bgcolor="white", xaxis_title="Antal personer", yaxis_title="Steg"
     )
     return fig
-    return fig
-    fig.update_traces(
-        hovertemplate="""
-            <b>%{hovertext}</b><br>
-            Antal invånare: %{antal_bev}<extra></extra>
-        """
+
+
+def create_funnel_chart_total(df):
+    fig = px.funnel(
+        df,
+        x="value",
+        y="stage",
+        title="Utbildningsfunnel: Sökande → Behöriga → Antagna → Examinerade",
+    )
+    fig.update_layout(
+        plot_bgcolor="white", xaxis_title="Antal personer", yaxis_title="Steg"
     )
     return fig
 

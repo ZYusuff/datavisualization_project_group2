@@ -146,6 +146,34 @@ def filter_data_by_direction_and_year(df, direction, year):
     return result
 
 
+def prepare_gender_comparison_funnel_data(direction, year):
+    sheets = load_all_sheets()
+    stages = ["sökande", "behöriga", "antagna", "examinerade"]
+
+    data = []
+
+    for stage in stages:
+        df = sheets[stage]
+        df_filtered = filter_data_by_direction_and_year(df, direction, year)
+
+        for gender_label in ["kvinnor", "män"]:
+            df_gender = df_filtered[df_filtered["gender"] == gender_label]
+            if not df_gender.empty:
+                value = df_gender["value"].values[0]
+            else:
+                value = 0
+
+            data.append(
+                {
+                    "number": value,
+                    "stage": stage,
+                    "office": "Kvinnor" if gender_label == "kvinnor" else "Män",
+                }
+            )
+
+    return pd.DataFrame(data)
+
+
 def prepare_total_data(direction, year):
     sheets = load_all_sheets()
     stages = ["sökande", "behöriga", "antagna", "examinerade"]
@@ -155,16 +183,13 @@ def prepare_total_data(direction, year):
         df = sheets[stage]
         filtered = filter_data_by_direction_and_year(df, direction, year)
 
-        # Оставляем только строки с полом "total"
         filtered = filtered[filtered["gender"] == "total"]
 
         if not filtered.empty:
             val = filtered["value"].values[0]
             funnel_data.append({"stage": stage, "value": val})
         else:
-            funnel_data.append(
-                {"stage": stage, "value": 0}  # или None, в зависимости от предпочтений
-            )
+            funnel_data.append({"stage": stage, "value": 0})
 
     return pd.DataFrame(funnel_data)
 
