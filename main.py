@@ -13,6 +13,7 @@ df_long, raw_data_table = load_and_process_page2_data()
 # Anropa funktionen för att få sidan och initial state
 page2_page, page2_state = page_2(df_long, raw_data_table)
 
+
 pages = {
     "home": home_page,
     "Courses": course_page,
@@ -20,6 +21,8 @@ pages = {
     "Skolor": page_3,
     "students": student_page,
     "data": data_page,
+    "data": data_page,
+    "Storytelling": storytelling_page,
 }
 
 Gui(pages=pages, css_file="assets/main.css").run(

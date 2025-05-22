@@ -48,16 +48,8 @@ def page_2(df_long, raw_data_table):
     with tgb.Page() as page_2:
         with tgb.part(class_name="container card"):
             tgb.navbar()
-        with tgb.part(class_name="container card stack-large"):
-            tgb.text("# MYH Dashboard 2024", mode="md")
-            tgb.text(
-            "Denna dashboard visar antal studerande inom olika utbildningsområden på yrkeshögskolan (YH) i Sverige över tid. "
-            "Data är hämtad från Statistiska centralbyrån (SCB) och omfattar endast YH-utbildningar. "
-            "Genom att filtrera på utbildningsinriktning och antal år kan du analysera trender och förändringar i antalet studerande "
-            "för att få en översikt över utvecklingen inom olika utbildningsinriktningar.",
-            mode="md"
-        )
-
+        with tgb.part(class_name="container card"):
+            tgb.text("# Utbildningsområde {selected_educational_area}", mode= "md")
         with tgb.part(class_name="container card stack-large"):
             tgb.text(
                 "Denna dashboard visar antal studerande inom olika utbildningsområden på yrkeshögskolan (YH) i Sverige över tid. "
@@ -69,13 +61,13 @@ def page_2(df_long, raw_data_table):
 
             # Statkort
             with tgb.layout(columns="1 1", gap="1rem"):
-                with tgb.part(class_name="card center"):
-                    tgb.text("### Totalt antal studerande de senaste {actual_years} åren", mode="md")
-                    tgb.text("{total_students}", mode="md")
+                with tgb.part():
+                    tgb.text("Totalt antal studerande de senaste {actual_years} åren", mode="md")
+                    tgb.text("## {total_students}", mode="md")
 
-                with tgb.part(class_name="card center"):
-                    tgb.text("### Medelvärdet av studenter per år", mode="md")
-                    tgb.text("{average_students}", mode="md")
+                with tgb.part():
+                    tgb.text("Medelvärdet av studenter per år", mode="md")
+                    tgb.text("## {average_students}", mode="md")
 
                 #with tgb.part(class_name="card center"):
                     #tgb.text("### Antal år", mode="md")
