@@ -2,30 +2,37 @@ import duckdb
 import plotly.express as px
 from backend.data_processing.page_1_data_processing import map_df, geo_file
 
+
 # CHARTS AND STATS FOR THE COURSE PAGE (PAGE 1)
-#stats on top of course page
+# stats on top of course page
 def course_stats(df, **options):
     if "year" in options:
         selected_year = options.get("year")
-        total_count = duckdb.query(f"""--sql
+        total_count = duckdb.query(
+            f"""--sql
                  SELECT COUNT(*) as count
                  FROM df
                 WHERE "År" = {selected_year}
-        """).df()
+        """
+        ).df()
         total_count = total_count.iloc[0, 0]
-        total_approved = duckdb.query(f"""--sql
+        total_approved = duckdb.query(
+            f"""--sql
                 SELECT COUNT(*) as count
                 FROM df
                 WHERE "År" = {selected_year} AND "Beslut" = 'Beviljad'
-        """).df()
+        """
+        ).df()
         total_approved = total_approved.iloc[0, 0]
-        approved_rate = total_approved/total_count
+        approved_rate = total_approved / total_count
     return (total_count, total_approved, approved_rate)
 
-#table for the course page
-def course_school_table(df, school = "", year=2024):
+
+# table for the course page
+def course_school_table(df, school="", year=2024):
     if school == "":
-        df = duckdb.query(f"""--sql
+        df = duckdb.query(
+            f"""--sql
                 SELECT 
                 skola,
                 COUNT(kursnamn) AS "Antal kurser",
@@ -35,12 +42,14 @@ def course_school_table(df, school = "", year=2024):
                 WHERE "År" = {year}
                 GROUP BY skola
                 ORDER BY "Antal kurser" DESC
-        """).df()
-        df["rate"] = round((df["rate"]*100),2).astype(str) + '%'
-        df = df.rename(columns={'rate': 'Beviljandegrad'})
+        """
+        ).df()
+        df["rate"] = round((df["rate"] * 100), 2).astype(str) + "%"
+        df = df.rename(columns={"rate": "Beviljandegrad"})
         return df
     else:
-        df = duckdb.query(f"""--sql
+        df = duckdb.query(
+            f"""--sql
                 SELECT 
                 skola,
                 COUNT(kursnamn) AS antal_kurser,
@@ -50,62 +59,80 @@ def course_school_table(df, school = "", year=2024):
                 WHERE "År" = {year} AND skola = '{school}'
                 GROUP BY skola  
                 ORDER BY antal_kurser DESC
-        """).df()
+        """
+        ).df()
         return df
-    
-#plot the bar chart for area of education
+
+
+# plot the bar chart for area of education
 def plot_area(df, year):
-        duckdb.register('df_for_query', df)
-        plot_df = duckdb.query(f"""--sql
+    duckdb.register("df_for_query", df)
+    plot_df = duckdb.query(
+        f"""--sql
             SELECT Utbildningsområde, COUNT(*) as antal, Beslut
             FROM df
             WHERE År = {year}
             GROUP BY Utbildningsområde, Beslut
                         ORDER BY antal DESC
-        """).df()
+        """
+    ).df()
 
-        custom_colors = {
-            'Beviljad': '#084083',   # Color for Approved
-            'Avslag': '#E4ECF6',     # Color for Rejected
-        }
+    custom_colors = {
+        "Beviljad": "#084083",  # Color for Approved
+        "Avslag": "#E4ECF6",  # Color for Rejected
+    }
 
-        fig = px.bar(plot_df, 
-                     x="antal", 
-                     y="Utbildningsområde", 
-                     color="Beslut", 
-                     color_discrete_map = custom_colors,
-                     orientation='h', 
-                     text_auto=True,
-                     height=800)
-        fig.update_layout(
-             showlegend=False, 
-             barmode='group',
-             plot_bgcolor="white",
-             yaxis=dict(
-                  autorange="reversed"),
-            xaxis=dict(
-                  title="Antal")
-            )
-        return fig
+    fig = px.bar(
+        plot_df,
+        x="antal",
+        y="Utbildningsområde",
+        color="Beslut",
+        color_discrete_map=custom_colors,
+        orientation="h",
+        text_auto=True,
+        height=800,
+    )
+    fig.update_layout(
+        showlegend=False,
+        barmode="group",
+        plot_bgcolor="white",
+        yaxis=dict(autorange="reversed"),
+        xaxis=dict(title="Antal"),
+    )
+    return fig
 
-#plot the map on course page
+
+# plot the map on course page
 def plot_map(year):
     df_map = map_df(year)
     df_map = df_map.rename(columns={"antal_bev": "Antal beviljade", "code": "Länskod"})
     geo_json = geo_file()
-    fig = px.choropleth(df_map, 
-                        geojson=geo_json, 
-                        locations="Länskod", 
-                        featureidkey="properties.ref:se:länskod",
-                        color="Antal beviljade",
-                        color_continuous_scale="blues",
-                        hover_name="name",
-                        )
-                        
-    fig.update_layout(width=1000, 
-                      height=700,
-                      legend=dict(title="Antal beviljade")
-                      )
-    fig.update_geos(fitbounds="locations", visible=False, projection_type="orthographic")
+    fig = px.choropleth(
+        df_map,
+        geojson=geo_json,
+        locations="Länskod",
+        featureidkey="properties.ref:se:länskod",
+        color="Antal beviljade",
+        color_continuous_scale="blues",
+        hover_name="name",
+    )
 
+    fig.update_layout(width=1000, height=700, legend=dict(title="Antal beviljade"))
+    fig.update_geos(
+        fitbounds="locations", visible=False, projection_type="orthographic"
+    )
+
+    return fig
+
+
+def create_funnel_chart(df):
+    fig = px.funnel(
+        df,
+        x="value",
+        y="stage",
+        title="Utbildningsfunnel: Sökande → Behöriga → Antagna → Examinerade",
+    )
+    fig.update_layout(
+        plot_bgcolor="white", xaxis_title="Antal personer", yaxis_title="Steg"
+    )
     return fig
