@@ -119,5 +119,5 @@ def plot_area_storytelling(df, year=2024):
             sizey=0.15,
             )
     )
-        fig.write_html("storytelling_course.html")
+        #fig.write_html("storytelling_course.html")
         return fig

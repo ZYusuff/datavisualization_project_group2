@@ -9,7 +9,7 @@ def course_data_transform():
     excel_files = list(folder_path.glob("*.xlsx"))
     
     all_data = []
-    target_columns = ["Diarienummer", "Beslut", "Anordnare namn", "Utbildningsnamn", "Antal beviljade platser", "Utbildningsområde", "YH-poäng", "Kommun"]
+    target_columns = ["Diarienummer", "Beslut", "Anordnare namn", "Utbildningsnamn", "Antal beviljade platser", "Utbildningsområde", "YH-poäng", "Kommun", "Antal beviljade platser", "Antal kommuner", "Län"]
 
     for file_path in excel_files:
         #print(f"Processing: {file_path}")
@@ -32,35 +32,7 @@ def course_data_transform():
     final_df["År"] = final_df["År"].astype(int)
     final_df = final_df.rename(columns={"Utbildningsnamn": "Kursnamn", "Anordnare namn" : "Skola"})
     return final_df
-
-def course_data_transform():
-    folder_path = Path(__file__).parent.parent.parent / "data/page_1"
-    excel_files = list(folder_path.glob("*.xlsx"))
-    
-    all_data = []
-    target_columns = ["Diarienummer", "Beslut", "Anordnare namn", "Utbildningsnamn", "Antal beviljade platser", "Utbildningsområde", "YH-poäng", "Kommun", "Antal kommuner", "Län"]
-
-    for file_path in excel_files:
-        #print(f"Processing: {file_path}")
-        df = pd.read_excel(file_path, sheet_name=0)
-        
-        column_mapping = {}
-        
-        for target in target_columns:
-            best_match = get_close_matches(target, df.columns, n=1)
-            #print(best_match)
-            if best_match:
-                column_mapping[best_match[0]] = target
-                #print(column_mapping)
-        df_renamed = df.rename(columns=column_mapping)
-        relevant_df = df_renamed[target_columns]
-        all_data.append(relevant_df)
-    final_df = pd.concat(all_data, ignore_index=True)
-    final_df["Diarienummer"] = final_df["Diarienummer"].str[4:8]
-    final_df = final_df.rename(columns={"Diarienummer": "År"})
-    final_df["År"] = final_df["År"].astype(int)
-    final_df = final_df.rename(columns={"Utbildningsnamn": "Kursnamn", "Anordnare namn" : "Skola"})
-    return final_df
+#print(course_data_transform().columns)
 
 def approved_courses():
     df = course_data_transform()
@@ -120,7 +92,7 @@ def regions_df():
             name_mapping[name] = best_match[0]
         df_regions['matched_name'] = df_regions['name'].map(name_mapping)
     return df_regions
-#print(approved_courses())
+
 def map_df(year = 2022):
     appr_course = approved_courses()
     regions = regions_df()
@@ -137,3 +109,38 @@ def map_df(year = 2022):
     map_df["antal_bev"] = map_df["antal_bev"].astype(int)
 
     return map_df
+
+def scrape_revenue():
+    revenue_df = pd.read_html("https://www.myh.se/yrkeshogskolan/ansok-om-att-bedriva-utbildning/ansokan-kurser/statsbidrag-och-schablonnivaer", encoding='utf-8')[0]
+    revenue_df["Med momskompensation"]=revenue_df["Med momskompensation"].str.replace(" ", "").astype(int)
+    revenue_df["Utan momskompensation"]=revenue_df["Utan momskompensation"].str.replace(" ", "").astype(int)
+    return revenue_df
+
+
+def available_money(year):
+    df = course_data_transform()
+    df_money=scrape_revenue()
+    rev_df = duckdb.query("""--sql
+            WITH CTE as (
+            SELECT skola, f.Utbildningsområde, År, SUM("Antal beviljade platser") as bev_platser, m."Med momskompensation" as komp
+             FROM df as f
+               LEFT JOIN df_money as m
+                   ON f.Utbildningsområde = m.Utbildningsområde
+                   where beslut = 'Beviljad'
+                   group by skola, f.Utbildningsområde, "År", m."Med momskompensation"
+                      )
+               SELECT skola, År, SUM(bev_platser*komp) as tot_rev
+                 FROM CTE
+                   GROUP BY skola, "År"
+                   ORDER BY tot_rev DESC
+    """).df()
+    rev_df = rev_df.rename(columns={"skola":"Skola"})
+    rev_df = rev_df.query(f'År=={year}')
+    #rev_df["tot_rev"] = rev_df["tot_rev"].apply(lambda x: f'{x:,}')
+    return rev_df
+
+
+def table_formatter(year):
+    df= available_money(year)
+    df["tot_rev"] = df["tot_rev"].apply(lambda x: f'{x:,}')
+    return df

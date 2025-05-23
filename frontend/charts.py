@@ -28,7 +28,6 @@ def course_stats(df, **options):
         approved_rate = total_approved / total_count
     return (total_count, total_approved, approved_rate)
 
-
 # table for the course page
 def course_school_table(df, school="", year=2024):
     if school == "":
@@ -63,7 +62,6 @@ def course_school_table(df, school="", year=2024):
         """
         ).df()
         return df
-
 
 # plot the bar chart for area of education
 def plot_area(df, year):
