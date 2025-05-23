@@ -138,7 +138,7 @@ def create_funnel_chart_total(df):
         df,
         x="value",
         y="stage",
-        title="Utbildningsfunnel: Sökande → Behöriga → Antagna → Examinerade",
+        title="Utbildningsfunnel: Total antal studenter",
     )
     fig.update_layout(
         plot_bgcolor="white", xaxis_title="Antal personer", yaxis_title="Steg"
@@ -152,12 +152,60 @@ def create_funnel_chart_gender(df):
         x="number",
         y="stage",
         color="office",
-        title="Utbildningsfunnel (Kön): Sökande → Behöriga → Antagna → Examinerade",
+        title="Utbildningsfunnel (Kön)",
     )
     fig.update_layout(
         plot_bgcolor="white", xaxis_title="Antal personer", yaxis_title="Steg"
     )
     return fig
+
+
+"""def create_funnel_chart_total(df):
+    fig = go.Figure(
+        go.Funnel(
+            y=df["stage"],
+            x=df["value"],
+            textinfo="value+percent initial",
+            marker_color="#4C78A8",
+        )
+    )
+
+    fig.update_layout(
+        plot_bgcolor="white",
+        xaxis_title="Antal personer",
+        yaxis_title="Steg",
+    )
+    return fig
+
+
+def create_funnel_chart_gender(df):
+    fig = go.Figure()
+    colors = {"Kvinnor": "#EF553B", "Män": "#3B48FD"}
+
+    for office in df["office"].unique():
+        office_df = df[df["office"] == office]
+        x_values = office_df["number"]
+        y_values = office_df["stage"]
+
+        text_positions = ["inside" if x > 2000 else "outside" for x in x_values]
+
+        fig.add_trace(
+            go.Funnel(
+                name=office,
+                y=y_values,
+                x=x_values,
+                textinfo="value+percent initial",
+                textposition=text_positions,
+                marker_color=colors.get(office, "#888"),
+            )
+        )
+
+    fig.update_layout(
+        plot_bgcolor="white",
+        xaxis_title="Antal personer",
+        yaxis_title="Steg",
+    )
+    return fig"""
 
 
 # CHARTS AND STATS FOR STORYTELLING PAGE (storytelling 2)

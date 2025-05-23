@@ -1,4 +1,4 @@
-import taipy.gui.builder as tgb
+"""import taipy.gui.builder as tgb
 import pandas as pd
 import plotly.express as px
 from backend.data_processing.page_3_data_processing import load_school_data
@@ -70,7 +70,4 @@ with tgb.Page() as page:
         tgb.chart(figure="{skol_fig}")
 
         tgb.text("## Tabell över utbildningar ({val_år})", mode="md")
-        tgb.table(data="{skol_tabell}", page_size=10)
-
-
-
+        tgb.table(data="{skol_tabell}", page_size=10)"""
