@@ -3,13 +3,12 @@ import pandas as pd
 import plotly.express as px
 from backend.data_processing.page_3_data_processing import load_school_data
 
-# === Ladda data
+# Ladda data
 df = load_school_data()
 alla_år = sorted(df["År"].unique())
 val_år = alla_år[-1]
 
-
-# === Stats- och diagramfunktion
+# Stats- och diagramfunktion
 def calculate_state(year):
     filtered = df[df["År"] == year]
     antal_ansökningar = len(filtered)
@@ -31,7 +30,7 @@ def calculate_state(year):
     # Stapeldiagram: antal utbildningar per skola
     bar_data = filtered["Anordnare"].value_counts().reset_index()
     bar_data.columns = ["Anordnare", "Antal utbildningar"]
-    bar_data = bar_data .head(15)
+    bar_data = bar_data.head(15)
     fig = px.bar(
         bar_data,
         x="Anordnare",
@@ -45,30 +44,18 @@ def calculate_state(year):
 
     return antal_ansökningar, antal_beviljade, beviljandegrad, tabell, fig
 
-
-# === Initiera
+# Initiera
 antal_ansökningar, antal_beviljade, beviljandegrad, skol_tabell, skol_fig = (
     calculate_state(val_år)
 )
 
-
-def uppdatera_state(state):
-    a, b, c, tab, fig = calculate_state(state.val_år)
-    state.antal_ansökningar = a
-    state.antal_beviljade = b
-    state.beviljandegrad = c
-    state.skol_tabell = tab
-    state.skol_fig = fig
-
-
-# === Page
+# Page
 with tgb.Page() as page:
     with tgb.part(class_name="container card"):
         tgb.navbar()
 
     with tgb.part(class_name="container card"):
-        tgb.text("# Statistik per Anordnare ({val_år})", mode="md")
-        tgb.selector("val_år", lov=alla_år, dropdown=True, on_change=uppdatera_state)
+        tgb.text(f"# Statistik per Anordnare ({val_år})", mode="md")
 
         with tgb.layout(columns="1 1 1"):
             with tgb.part():
@@ -81,8 +68,8 @@ with tgb.Page() as page:
                 tgb.text("Beviljandegrad")
                 tgb.text("{beviljandegrad} %")
 
-        tgb.text("## Topp 15 anordnare med flest utbildningar", mode="md")
+        tgb.text(" Topp 15 anordnare med flest utbildningar", mode="md")
         tgb.chart(figure="{skol_fig}")
 
-        tgb.text("Tabell över utbildningar ({val_år})", mode="md")
+        tgb.text(f"Tabell över utbildningar ({val_år})", mode="md")
         tgb.table(data="{skol_tabell}", page_size=10)

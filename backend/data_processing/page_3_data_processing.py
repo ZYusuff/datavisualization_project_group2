@@ -13,7 +13,7 @@ def load_school_data():
         "Beslut": "Status"
     })
 
-    # Extrahera år från diarienummer
+    # hämtar år från diarienummer
     df["År"] = df["Diarienummer"].astype(str).str.extract(r"(\d{4})")
     df["År"] = pd.to_numeric(df["År"], errors="coerce")
     df = df.dropna(subset=["År"])
