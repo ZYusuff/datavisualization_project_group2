@@ -8,12 +8,17 @@ df = load_school_data()
 alla_år = sorted(df["År"].unique())
 val_år = alla_år[-1]
 
+
 # === Stats- och diagramfunktion
 def calculate_state(year):
     filtered = df[df["År"] == year]
     antal_ansökningar = len(filtered)
     antal_beviljade = len(filtered[filtered["Status"] == "Beviljad"])
-    beviljandegrad = round(antal_beviljade / antal_ansökningar * 100, 2) if antal_ansökningar > 0 else 0
+    beviljandegrad = (
+        round(antal_beviljade / antal_ansökningar * 100, 2)
+        if antal_ansökningar > 0
+        else 0
+    )
 
     # Tabell per skola
     tabell = (
@@ -26,17 +31,25 @@ def calculate_state(year):
     # Stapeldiagram: antal utbildningar per skola
     bar_data = filtered["Anordnare"].value_counts().reset_index()
     bar_data.columns = ["Anordnare", "Antal utbildningar"]
-    fig = px.bar(bar_data, x="Anordnare", y="Antal utbildningar",
-                 title=f"Antal utbildningar per anordnare ({year})",
-                 labels={"Antal utbildningar": "Antal"},
-                 template="simple_white")
+    fig = px.bar(
+        bar_data,
+        x="Anordnare",
+        y="Antal utbildningar",
+        title=f"Antal utbildningar per anordnare ({year})",
+        labels={"Antal utbildningar": "Antal"},
+        template="simple_white",
+    )
 
     fig.update_layout(xaxis_tickangle=-45, height=500)
 
     return antal_ansökningar, antal_beviljade, beviljandegrad, tabell, fig
 
+
 # === Initiera
-antal_ansökningar, antal_beviljade, beviljandegrad, skol_tabell, skol_fig = calculate_state(val_år)
+antal_ansökningar, antal_beviljade, beviljandegrad, skol_tabell, skol_fig = (
+    calculate_state(val_år)
+)
+
 
 def uppdatera_state(state):
     a, b, c, tab, fig = calculate_state(state.val_år)
@@ -45,6 +58,7 @@ def uppdatera_state(state):
     state.beviljandegrad = c
     state.skol_tabell = tab
     state.skol_fig = fig
+
 
 # === Page
 with tgb.Page() as page:
@@ -71,6 +85,3 @@ with tgb.Page() as page:
 
         tgb.text("## Tabell över utbildningar ({val_år})", mode="md")
         tgb.table(data="{skol_tabell}", page_size=10)
-
-
-

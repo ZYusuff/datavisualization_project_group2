@@ -1,5 +1,6 @@
 import taipy.gui.builder as tgb
-from frontend.pages.page_3 import page as page3  
+
+# from frontend.pages.page_3 import page as page3
 
 with tgb.Page() as home_page:
     with tgb.part(class_name="container and card stack-large"):
@@ -34,14 +35,14 @@ Initiativet började med ett proof-of-concept från Kokchun, som med sin dashboa
 #### DATA
 - Samling av data som visualieringarna är baserade på
                 """,
-                mode="md"
+                mode="md",
             )
 
         # ✅ Lägg till en selector för att visa "Skolor"
-        selected_tab = "Skolor"
+        """selected_tab = "Skolor"
 
         with tgb.part():
             tgb.selector(selected_tab, lov=["Skolor"])
 
             with tgb.part(render_condition="selected_tab == 'Skolor'"):
-                tgb.text(page3)
+                tgb.text(page3)"""
