@@ -31,6 +31,7 @@ def calculate_state(year):
     # Stapeldiagram: antal utbildningar per skola
     bar_data = filtered["Anordnare"].value_counts().reset_index()
     bar_data.columns = ["Anordnare", "Antal utbildningar"]
+    bar_data = bar_data .head(15)
     fig = px.bar(
         bar_data,
         x="Anordnare",
@@ -72,16 +73,16 @@ with tgb.Page() as page:
         with tgb.layout(columns="1 1 1"):
             with tgb.part():
                 tgb.text("Antal ansökningar")
-                tgb.text("### {antal_ansökningar}")
+                tgb.text("{antal_ansökningar}")
             with tgb.part():
                 tgb.text("Antal beviljade")
-                tgb.text("### {antal_beviljade}")
+                tgb.text("{antal_beviljade}")
             with tgb.part():
                 tgb.text("Beviljandegrad")
-                tgb.text("### {beviljandegrad} %")
+                tgb.text("{beviljandegrad} %")
 
-        tgb.text("## Beviljade utbildningar per anordnare", mode="md")
+        tgb.text("## Topp 15 anordnare med flest utbildningar", mode="md")
         tgb.chart(figure="{skol_fig}")
 
-        tgb.text("## Tabell över utbildningar ({val_år})", mode="md")
+        tgb.text("Tabell över utbildningar ({val_år})", mode="md")
         tgb.table(data="{skol_tabell}", page_size=10)
