@@ -259,6 +259,7 @@ def create_storytelling_chart(df_summary):
             borderwidth=1,
         )
 
+        
     # Konvertera plotly.express-figuren till plotly.graph_objects.Figure
     fig = go.Figure(fig_px)
     return fig
