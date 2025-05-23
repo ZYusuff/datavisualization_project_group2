@@ -2,7 +2,8 @@ import pandas as pd
 from pathlib import Path
 
 def load_school_data():
-    path = Path(__file__).parent.parent.parent / "data/page_3/alla_ansökningar.xlsx"
+    # Uppdaterad sökväg med "o" istället för "ö"
+    path = Path(__file__).parent.parent.parent / "data/page_3/alla_ansokningar.xlsx"
     df = pd.read_excel(path)
 
     # Byt till kolumner som finns i din Excel-fil
@@ -12,7 +13,7 @@ def load_school_data():
         "Beslut": "Status"
     })
 
-    # Extrahera år från diarienummer
+    # hämtar år från diarienummer
     df["År"] = df["Diarienummer"].astype(str).str.extract(r"(\d{4})")
     df["År"] = pd.to_numeric(df["År"], errors="coerce")
     df = df.dropna(subset=["År"])
